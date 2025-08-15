@@ -1,0 +1,29 @@
+{
+  "name": "trailwright",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Adventure-minimal trip planner for small groups",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "typecheck": "turbo typecheck",
+    "clean": "turbo clean",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:generate": "cd apps/web && pnpm db:generate",
+    "db:push": "cd apps/web && pnpm db:push",
+    "db:seed": "cd infra && tsx seed.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "prettier": "^3.1.1",
+    "turbo": "^1.11.2",
+    "typescript": "^5.3.3"
+  },
+  "packageManager": "pnpm@8.15.1"
+}

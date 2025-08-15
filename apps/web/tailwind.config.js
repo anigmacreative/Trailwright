@@ -1,0 +1,1 @@
+module.exports = require("@trailwright/config/tailwind.config.js");

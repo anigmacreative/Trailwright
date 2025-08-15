@@ -1,0 +1,494 @@
+{
+  "trips": [
+    {
+      "id": "demo-trip-1",
+      "title": "Iceland Volcano Trekking",
+      "start_date": "2024-06-15",
+      "end_date": "2024-06-22",
+      "is_public": true,
+      "currency": "ISK",
+      "days": [
+        {
+          "date": "2024-06-15",
+          "index": 0,
+          "places": [
+            {
+              "name": "Keflavik International Airport",
+              "lat": 63.985,
+              "lng": -22.6056,
+              "sort_order": 0,
+              "start_time": "14:00",
+              "end_time": "15:00",
+              "notes": "Arrival and car rental pickup"
+            },
+            {
+              "name": "Blue Lagoon",
+              "lat": 63.8804,
+              "lng": -22.4495,
+              "sort_order": 1,
+              "start_time": "16:00",
+              "end_time": "19:00",
+              "notes": "Geothermal spa experience",
+              "cost_cents": 8500
+            },
+            {
+              "name": "Reykjavik Downtown",
+              "lat": 64.1466,
+              "lng": -21.9426,
+              "sort_order": 2,
+              "start_time": "20:00",
+              "end_time": "22:00",
+              "notes": "Check into hotel, evening exploration"
+            }
+          ]
+        },
+        {
+          "date": "2024-06-16",
+          "index": 1,
+          "places": [
+            {
+              "name": "Gullfoss Waterfall",
+              "lat": 64.3271,
+              "lng": -20.1218,
+              "sort_order": 0,
+              "start_time": "09:00",
+              "end_time": "11:00",
+              "notes": "Golden Circle - magnificent two-tiered waterfall"
+            },
+            {
+              "name": "Geysir Geothermal Area",
+              "lat": 64.3107,
+              "lng": -20.3014,
+              "sort_order": 1,
+              "start_time": "11:30",
+              "end_time": "13:00",
+              "notes": "Watch Strokkur erupt every 5-10 minutes"
+            },
+            {
+              "name": "Thingvellir National Park",
+              "lat": 64.2559,
+              "lng": -21.1304,
+              "sort_order": 2,
+              "start_time": "14:00",
+              "end_time": "17:00",
+              "notes": "Rift valley between tectonic plates, historic parliament site"
+            }
+          ]
+        },
+        {
+          "date": "2024-06-17",
+          "index": 2,
+          "places": [
+            {
+              "name": "Fagradalsfjall Volcano",
+              "lat": 63.8933,
+              "lng": -22.2683,
+              "sort_order": 0,
+              "start_time": "08:00",
+              "end_time": "15:00",
+              "notes": "3-hour hike to recent volcanic activity site",
+              "tags": ["hiking", "volcano", "adventure"]
+            },
+            {
+              "name": "Grindavik Fishing Village",
+              "lat": 63.8426,
+              "lng": -22.4338,
+              "sort_order": 1,
+              "start_time": "16:00",
+              "end_time": "18:00",
+              "notes": "Traditional fishing village, local seafood"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-trip-2",
+      "title": "Diving in the Red Sea",
+      "start_date": "2024-07-10",
+      "end_date": "2024-07-17",
+      "is_public": true,
+      "currency": "EGP",
+      "days": [
+        {
+          "date": "2024-07-10",
+          "index": 0,
+          "places": [
+            {
+              "name": "Hurghada Airport",
+              "lat": 27.1783,
+              "lng": 33.7994,
+              "sort_order": 0,
+              "start_time": "12:00",
+              "end_time": "13:00",
+              "notes": "Arrival from Cairo"
+            },
+            {
+              "name": "Red Sea Resort",
+              "lat": 27.2579,
+              "lng": 33.8116,
+              "sort_order": 1,
+              "start_time": "14:00",
+              "end_time": "16:00",
+              "notes": "Check-in and equipment briefing"
+            },
+            {
+              "name": "Shallow Reef Dive",
+              "lat": 27.2653,
+              "lng": 33.8245,
+              "sort_order": 2,
+              "start_time": "17:00",
+              "end_time": "18:30",
+              "notes": "Orientation dive, check skills"
+            }
+          ]
+        },
+        {
+          "date": "2024-07-11",
+          "index": 1,
+          "places": [
+            {
+              "name": "Giftun Island",
+              "lat": 27.1833,
+              "lng": 33.9167,
+              "sort_order": 0,
+              "start_time": "07:00",
+              "end_time": "17:00",
+              "notes": "Full day diving - pristine coral gardens",
+              "tags": ["diving", "coral", "marine life"]
+            }
+          ]
+        },
+        {
+          "date": "2024-07-12",
+          "index": 2,
+          "places": [
+            {
+              "name": "Thistlegorm Wreck",
+              "lat": 27.8167,
+              "lng": 33.9167,
+              "sort_order": 0,
+              "start_time": "06:00",
+              "end_time": "18:00",
+              "notes": "World-famous WWII shipwreck - advanced diving",
+              "tags": ["wreck diving", "history", "advanced"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-trip-3",
+      "title": "Patagonia Expedition",
+      "start_date": "2024-11-05",
+      "end_date": "2024-11-18",
+      "is_public": true,
+      "currency": "ARS",
+      "days": [
+        {
+          "date": "2024-11-05",
+          "index": 0,
+          "places": [
+            {
+              "name": "El Calafate Airport",
+              "lat": -50.2803,
+              "lng": -72.0531,
+              "sort_order": 0,
+              "start_time": "15:00",
+              "end_time": "16:00",
+              "notes": "Gateway to Patagonia glaciers"
+            },
+            {
+              "name": "El Calafate Town",
+              "lat": -50.3378,
+              "lng": -72.2647,
+              "sort_order": 1,
+              "start_time": "17:00",
+              "end_time": "20:00",
+              "notes": "Gear check and local provisions"
+            }
+          ]
+        },
+        {
+          "date": "2024-11-06",
+          "index": 1,
+          "places": [
+            {
+              "name": "Perito Moreno Glacier",
+              "lat": -50.4958,
+              "lng": -73.0314,
+              "sort_order": 0,
+              "start_time": "08:00",
+              "end_time": "17:00",
+              "notes": "Ice trekking on the glacier face",
+              "tags": ["glacier", "ice trekking", "photography"]
+            }
+          ]
+        },
+        {
+          "date": "2024-11-07",
+          "index": 2,
+          "places": [
+            {
+              "name": "El Chalten",
+              "lat": -49.3316,
+              "lng": -72.8867,
+              "sort_order": 0,
+              "start_time": "09:00",
+              "end_time": "18:00",
+              "notes": "Drive to trekking base, Fitz Roy views"
+            }
+          ]
+        },
+        {
+          "date": "2024-11-08",
+          "index": 3,
+          "places": [
+            {
+              "name": "Laguna de los Tres",
+              "lat": -49.3167,
+              "lng": -72.9667,
+              "sort_order": 0,
+              "start_time": "06:00",
+              "end_time": "19:00",
+              "notes": "Epic day hike to Fitz Roy basecamp",
+              "tags": ["hiking", "mountains", "epic views"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-trip-4",
+      "title": "K2 Basecamp Approach",
+      "start_date": "2024-08-01",
+      "end_date": "2024-08-21",
+      "is_public": true,
+      "currency": "PKR",
+      "days": [
+        {
+          "date": "2024-08-01",
+          "index": 0,
+          "places": [
+            {
+              "name": "Islamabad",
+              "lat": 33.6844,
+              "lng": 73.0479,
+              "sort_order": 0,
+              "start_time": "08:00",
+              "end_time": "18:00",
+              "notes": "Final preparations, permits, team briefing"
+            }
+          ]
+        },
+        {
+          "date": "2024-08-02",
+          "index": 1,
+          "places": [
+            {
+              "name": "Skardu",
+              "lat": 35.2971,
+              "lng": 75.6333,
+              "sort_order": 0,
+              "start_time": "09:00",
+              "end_time": "16:00",
+              "notes": "Flight to mountain gateway, acclimatization"
+            }
+          ]
+        },
+        {
+          "date": "2024-08-03",
+          "index": 2,
+          "places": [
+            {
+              "name": "Askole Village",
+              "lat": 35.6833,
+              "lng": 75.8167,
+              "sort_order": 0,
+              "start_time": "07:00",
+              "end_time": "17:00",
+              "notes": "Last village, porter arrangements"
+            }
+          ]
+        },
+        {
+          "date": "2024-08-04",
+          "index": 3,
+          "places": [
+            {
+              "name": "Jhola Camp",
+              "lat": 35.7333,
+              "lng": 76.0167,
+              "sort_order": 0,
+              "start_time": "06:00",
+              "end_time": "15:00",
+              "notes": "Begin Baltoro trek, first camp"
+            }
+          ]
+        },
+        {
+          "date": "2024-08-10",
+          "index": 9,
+          "places": [
+            {
+              "name": "K2 Base Camp",
+              "lat": 35.8825,
+              "lng": 76.5133,
+              "sort_order": 0,
+              "start_time": "12:00",
+              "end_time": "16:00",
+              "notes": "Arrival at the savage mountain's base",
+              "tags": ["mountaineering", "base camp", "achievement"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-trip-5",
+      "title": "Extreme Arctic Expedition",
+      "start_date": "2024-03-15",
+      "end_date": "2024-03-25",
+      "is_public": true,
+      "currency": "NOK",
+      "days": [
+        {
+          "date": "2024-03-15",
+          "index": 0,
+          "places": [
+            {
+              "name": "Longyearbyen Airport",
+              "lat": 78.2458,
+              "lng": 15.5056,
+              "sort_order": 0,
+              "start_time": "14:00",
+              "end_time": "15:00",
+              "notes": "World's northernmost airport"
+            },
+            {
+              "name": "Svalbard Gear Center",
+              "lat": 78.2232,
+              "lng": 15.6267,
+              "sort_order": 1,
+              "start_time": "16:00",
+              "end_time": "18:00",
+              "notes": "Arctic survival gear fitting"
+            }
+          ]
+        },
+        {
+          "date": "2024-03-16",
+          "index": 1,
+          "places": [
+            {
+              "name": "Barentsburg",
+              "lat": 78.0648,
+              "lng": 14.2335,
+              "sort_order": 0,
+              "start_time": "09:00",
+              "end_time": "17:00",
+              "notes": "Snowmobile to Russian mining town",
+              "tags": ["snowmobile", "culture", "remote"]
+            }
+          ]
+        },
+        {
+          "date": "2024-03-17",
+          "index": 2,
+          "places": [
+            {
+              "name": "Polar Bear Territory",
+              "lat": 78.5,
+              "lng": 16.0,
+              "sort_order": 0,
+              "start_time": "08:00",
+              "end_time": "18:00",
+              "notes": "Guided expedition with rifle escort",
+              "tags": ["polar bears", "wildlife", "dangerous"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-trip-6",
+      "title": "Border-to-Border Adventure Cycling",
+      "start_date": "2024-05-01",
+      "end_date": "2024-05-31",
+      "is_public": true,
+      "currency": "EUR",
+      "days": [
+        {
+          "date": "2024-05-01",
+          "index": 0,
+          "places": [
+            {
+              "name": "Nordkapp, Norway",
+              "lat": 71.1725,
+              "lng": 25.7845,
+              "sort_order": 0,
+              "start_time": "10:00",
+              "end_time": "12:00",
+              "notes": "Northernmost point of Europe - expedition start"
+            },
+            {
+              "name": "Honningsvag",
+              "lat": 70.9821,
+              "lng": 25.9704,
+              "sort_order": 1,
+              "start_time": "15:00",
+              "end_time": "19:00",
+              "notes": "First night, final bike preparations"
+            }
+          ]
+        },
+        {
+          "date": "2024-05-10",
+          "index": 9,
+          "places": [
+            {
+              "name": "Trondheim",
+              "lat": 63.4305,
+              "lng": 10.3951,
+              "sort_order": 0,
+              "start_time": "16:00",
+              "end_time": "20:00",
+              "notes": "Historic city, bike maintenance stop"
+            }
+          ]
+        },
+        {
+          "date": "2024-05-20",
+          "index": 19,
+          "places": [
+            {
+              "name": "Copenhagen",
+              "lat": 55.6761,
+              "lng": 12.5683,
+              "sort_order": 0,
+              "start_time": "14:00",
+              "end_time": "18:00",
+              "notes": "Cycling capital of the world"
+            }
+          ]
+        },
+        {
+          "date": "2024-05-31",
+          "index": 30,
+          "places": [
+            {
+              "name": "Tarifa, Spain",
+              "lat": 36.0140,
+              "lng": -5.6010,
+              "sort_order": 0,
+              "start_time": "16:00",
+              "end_time": "20:00",
+              "notes": "Southernmost point of continental Europe - expedition complete!",
+              "tags": ["achievement", "epic finish", "celebration"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
