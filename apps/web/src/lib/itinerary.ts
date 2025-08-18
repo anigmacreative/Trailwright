@@ -41,6 +41,11 @@ export function movePlace(placeId: string, newDayId: string): void {
   // TODO: implement real logic
 }
 
-export function reorderDayPlaces(dayId: string, placeIds: string[]): void {
-  // TODO: implement real logic
+/**
+ * Reorder places within a day.  Returns a boolean indicating success so
+ * consumers can decide whether to refresh the list.
+ */
+export async function reorderDayPlaces(dayId: string, placeIds: string[]): Promise<boolean> {
+  // TODO: replace this mock implementation with real logic.
+  return true;
 }
