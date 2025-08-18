@@ -1,6 +1,7 @@
 {
   "version": 2,
-  "installCommand": "pnpm install --frozen-lockfile",
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm --filter ./apps/web build",
   "builds": [
     {
       "src": "apps/web/package.json",
