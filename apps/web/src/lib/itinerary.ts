@@ -28,9 +28,9 @@ export function addPlaceToDay(dayId: string, place: Omit<DayPlace, 'id' | 'dayId
   };
 }
 
-export function listDayPlaces(dayId: string): DayPlace[] {
+export function listDayPlaces(params: { dayId: string }): Promise<DayPlace[]> {
   // TODO: implement real logic
-  return [];
+  return Promise.resolve([]);
 }
 
 export function movePlace(placeId: string, newDayId: string): void {
