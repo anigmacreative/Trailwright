@@ -1,7 +1,7 @@
 {
   "framework": "nextjs",
-  "installCommand": "pwd && ls -la .. && ls -la ../.. && cd ../.. && pnpm install --frozen-lockfile",
-  "buildCommand": "cd ../.. && pnpm --filter ./apps/web build",
+  "installCommand": "cd /vercel/path0 && pnpm install --frozen-lockfile",
+  "buildCommand": "cd /vercel/path0 && pnpm --filter ./apps/web build",
   "outputDirectory": ".next",
   "regions": [
     "iad1"
