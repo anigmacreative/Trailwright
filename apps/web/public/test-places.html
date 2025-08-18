@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Places API (New)</title>
+</head>
+<body>
+    <h1>Testing Places API (New)</h1>
+    <div id="result"></div>
+    
+    <script>
+        const API_KEY = 'AIzaSyB0eCUGwg4Tysq8UMY2b3NM0xWjz1u7iCw';
+        const resultDiv = document.getElementById('result');
+        
+        console.log('Testing Places API (New) from browser...');
+        
+        fetch(`https://places.googleapis.com/v1/places:autocomplete`, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "X-Goog-Api-Key": API_KEY
+            },
+            body: JSON.stringify({
+                input: "Reykjavik"
+            })
+        })
+        .then(response => {
+            console.log('Status:', response.status);
+            resultDiv.innerHTML += `<p>Status: ${response.status}</p>`;
+            return response.text();
+        })
+        .then(text => {
+            console.log('Response:', text);
+            resultDiv.innerHTML += `<pre>${text}</pre>`;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            resultDiv.innerHTML += `<p>Error: ${error.message}</p>`;
+        });
+    </script>
+</body>
+</html>

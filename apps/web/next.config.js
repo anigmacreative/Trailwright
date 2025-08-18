@@ -10,9 +10,6 @@ const nextConfig = {
       "places.googleapis.com",
     ],
   },
-  env: {
-    CUSTOM_KEY: process.env.CUSTOM_KEY,
-  },
   webpack: (config) => {
     config.resolve.alias.canvas = false;
     return config;

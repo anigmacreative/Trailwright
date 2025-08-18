@@ -1,6 +1,39 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import "../styles/maps-ui.css";
+
+/* === Trailwright UI helpers === */
+@layer components {
+  .panel {
+    @apply text-slate shadow-xl rounded-2xl backdrop-blur-sm;
+    background-color: rgba(245, 242, 235, 0.95); /* bone/95 */
+    border: 1px solid rgba(108, 107, 87, 0.2); /* olive/20 */
+  }
+  .panel-dark {
+    @apply text-bone shadow-xl rounded-2xl backdrop-blur-sm;
+    background-color: rgba(46, 46, 43, 0.95); /* slate/95 */
+    border: 1px solid rgba(245, 242, 235, 0.1); /* bone/10 */
+  }
+  .input {
+    @apply w-full rounded-xl bg-bone px-3 py-2 text-slate focus:outline-none focus:ring-2;
+    border: 1px solid rgba(108, 107, 87, 0.3); /* olive/30 */
+    color: rgba(46, 46, 43, 1); /* slate */
+  }
+  .input::placeholder {
+    color: rgba(46, 46, 43, 0.6); /* slate/60 */
+    opacity: 0.6;
+  }
+  .input:focus {
+    box-shadow: 0 0 0 2px rgba(108, 107, 87, 0.4); /* olive/40 */
+  }
+}
+
+/* Ensure inputs and panels are legible on dark map */
+.input, input, .panel {
+  background-color: rgba(20,20,20,0.95);
+  color: #e1ddcf;
+}
 
 @import url('https://fonts.googleapis.com/css2?family=Ibarra+Real+Nova:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');

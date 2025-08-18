@@ -1,6 +1,6 @@
 import { Inter, Ibarra_Real_Nova } from "next/font/google";
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -21,7 +21,6 @@ export const metadata: Metadata = {
   description: "Plan extraordinary journeys with minimal fuss. Collaborative trip planning with an adventure-minimal aesthetic.",
   keywords: ["trip planning", "travel", "adventure", "collaboration", "itinerary"],
   authors: [{ name: "Trailwright" }],
-  viewport: "width=device-width, initial-scale=1",
   robots: "index, follow",
   openGraph: {
     type: "website",
@@ -36,6 +35,13 @@ export const metadata: Metadata = {
     title: "Trailwright - Adventure Planning for Small Groups",
     description: "Plan extraordinary journeys with minimal fuss.",
   },
+};
+
+// ✅ Proper way to configure viewport in App Router
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0f0f0f",
 };
 
 export default function RootLayout({

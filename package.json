@@ -9,7 +9,13 @@
   ],
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev",
+    "dev": "pnpm -C apps/web dev",
+    "dev:web": "pnpm -C apps/web dev",
+    "dev:web:3000": "PORT=3000 pnpm -C apps/web dev",
+    "dev:api": "cd apps/api && uvicorn main:app --reload --port 8000",
+    "install:clean": "rm -rf node_modules pnpm-lock.yaml && pnpm install",
+    "kill3000:mac": "lsof -ti :3000 | xargs -r kill -9",
+    "kill3000:win": "for /f \"tokens=5\" %a in ('netstat -ano ^| findstr :3000') do taskkill /PID %a /F",
     "lint": "turbo lint",
     "test": "turbo test",
     "typecheck": "turbo typecheck",
@@ -25,5 +31,5 @@
     "turbo": "^1.11.2",
     "typescript": "^5.3.3"
   },
-  "packageManager": "pnpm@8.15.1"
+  "packageManager": "pnpm@9.1.0"
 }

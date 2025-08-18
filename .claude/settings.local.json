@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(corepack enable)",
+      "Bash(cd:*)",
+      "Bash(pnpm install:*)",
+      "Bash(rm:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

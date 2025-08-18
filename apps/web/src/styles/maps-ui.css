@@ -1,0 +1,21 @@
+.tw-place-picker {
+  display: block;
+  position: relative;
+  z-index: 50; /* ensure above map */
+}
+gmpx-place-picker::part(input) {
+  background: #fff;
+  border: 1px solid #d4d4d4;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  font-size: 14px;
+}
+gmpx-place-picker::part(panel) {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.16);
+  max-height: 320px;
+  overflow: auto;
+}
