@@ -6,7 +6,9 @@
       "Bash(cd:*)",
       "Bash(pnpm install:*)",
       "Bash(rm:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(pnpm:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }
