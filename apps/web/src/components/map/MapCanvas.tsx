@@ -58,7 +58,7 @@ export default function MapCanvas({
 
     onMapReady?.(mapRef.current);
     setReady(true);
-  }, [center.lat, center.lng, zoom, onMapReady]); // stable primitives
+  }, [center, zoom, onMapReady]);
 
   // Search functionality
   const onSearchChange = async () => {

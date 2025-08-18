@@ -23,7 +23,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "db:generate": "cd apps/web && pnpm db:generate",
     "db:push": "cd apps/web && pnpm db:push",
-    "db:seed": "cd infra && tsx seed.ts"
+    "db:seed": "cd infra && tsx seed.ts",
+    "check": "pnpm --filter ./apps/web run typecheck && pnpm --filter ./apps/web run lint"
   },
   "devDependencies": {
     "@types/node": "^20.10.5",

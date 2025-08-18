@@ -191,8 +191,8 @@ export default function TripPage({ params }: { params: { tripId: string } }) {
         <div className="flex flex-1 flex-col">
           <div className="flex-1 relative">
             <MapCanvas
-              initialCenter={{ lat: 64.1466, lng: -21.9426 }} // Default to Reykjavik
-              initialZoom={10}
+              center={{ lat: 64.1466, lng: -21.9426 }} // Default to Reykjavik
+              zoom={10}
             />
           </div>
         </div>
@@ -249,14 +249,14 @@ export default function TripPage({ params }: { params: { tripId: string } }) {
               <ItineraryList
                 places={dayItems.map(item => ({
                   id: item.id,
-                  name: item.title,
+                  name: item.name,
                   lat: item.lat,
                   lng: item.lng,
-                  address: item.formatted_address,
+                  address: '',
                   dayIndex: selectedDayIndex,
-                  sortOrder: item.sort_order,
+                  sortOrder: item.order,
                 }))}
-                onPlaceClick={(place) => handleMarkerClick(place.id)}
+                onPlaceClick={(place) => {}}
                 onReorder={(_, fromIndex, toIndex) => {
                   // Optimistic update
                   const newItems = [...dayItems];

@@ -26,8 +26,6 @@ export function addPlaceToDay(dayId: string, place: Omit<DayPlace, 'id' | 'dayId
     id: `place_${Date.now()}`,
     dayId,
     order: 0,
-    lat: 0,
-    lng: 0,
     ...place,
   };
 }

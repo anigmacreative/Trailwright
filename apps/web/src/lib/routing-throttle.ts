@@ -27,7 +27,9 @@ export class RouteCache {
     if (this.map.size > this.max) {
       // drop oldest
       const firstKey = this.map.keys().next().value;
-      this.map.delete(firstKey);
+      if (firstKey) {
+        this.map.delete(firstKey);
+      }
     }
   }
 }

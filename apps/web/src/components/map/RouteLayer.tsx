@@ -12,12 +12,15 @@ interface RouteLayerProps {
 }
 
 // Simple debounce implementation
-function debounce<T extends (...args: any[]) => void>(func: T, delay: number): T {
+function debounce<T extends (...args: any[]) => void>(func: T, delay: number): T & { cancel?: () => void } {
   let timeoutId: NodeJS.Timeout;
-  return ((...args: any[]) => {
+  const debounced = ((...args: any[]) => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => func(...args), delay);
-  }) as T;
+  }) as T & { cancel?: () => void };
+  
+  debounced.cancel = () => clearTimeout(timeoutId);
+  return debounced;
 }
 
 export default function RouteLayer({
