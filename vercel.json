@@ -3,6 +3,7 @@
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm --filter ./apps/web build",
   "outputDirectory": "apps/web/.next",
+  "rootDirectory": "apps/web",
   "regions": [
     "iad1"
   ],
