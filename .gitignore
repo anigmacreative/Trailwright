@@ -64,7 +64,8 @@ develop-eggs/
 downloads/
 eggs/
 .eggs/
-lib/
+**/python/lib/
+**/venv/lib/
 lib64/
 parts/
 sdist/
