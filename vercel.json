@@ -5,7 +5,7 @@
   "outputDirectory": "apps/web/.next",
   "regions": ["iad1"],
   "functions": {
-    "apps/web/src/app/api/**": {
+    "apps/web/src/app/api/export/pdf/route": {
       "maxDuration": 30
     }
   },
