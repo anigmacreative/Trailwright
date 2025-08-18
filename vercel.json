@@ -3,12 +3,9 @@
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm --filter ./apps/web build",
   "outputDirectory": "apps/web/.next",
-  "regions": ["iad1"],
-  "functions": {
-    "apps/web/src/app/api/export/pdf/route": {
-      "maxDuration": 30
-    }
-  },
+  "regions": [
+    "iad1"
+  ],
   "env": {
     "NEXT_PUBLIC_APP_URL": "https://trailwright.vercel.app",
     "NEXT_PUBLIC_DEMO_MODE": "true"
