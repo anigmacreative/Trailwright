@@ -1,3 +1,5 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
@@ -12,6 +14,11 @@ const nextConfig = {
   },
   webpack: (config) => {
     config.resolve.alias.canvas = false;
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, 'src'),
+      '@/ui': path.resolve(__dirname, '../../packages/ui/src'),
+    };
     return config;
   },
 };
