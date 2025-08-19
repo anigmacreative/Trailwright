@@ -56,14 +56,8 @@ export default function RouteLayer({
 
         // Clear route if fewer than 2 waypoints
         if (wps.length < 2) {
-          rendererRef.current.setDirections(null);
           rendererRef.current.setMap(null);
           return;
-        }
-
-        // Ensure renderer is attached to map
-        if (!rendererRef.current.getMap()) {
-          rendererRef.current.setMap(map!);
         }
 
         const origin = wps[0];
@@ -81,6 +75,7 @@ export default function RouteLayer({
           },
           (res, status) => {
             if (status === google.maps.DirectionsStatus.OK && res) {
+              rendererRef.current!.setMap(map!);
               rendererRef.current!.setDirections(res);
             } else {
               console.error("Directions request failed:", status);
@@ -91,12 +86,12 @@ export default function RouteLayer({
     [travelMode, map]
   );
 
+  // Create deep dependency string from waypoint coordinates
+  const coords = waypoints.map(w => `${w.lat},${w.lng}`).join('|');
+
   // Use deep dependency to trigger on coordinate changes
   useEffect(() => {
     if (!map) return;
-    
-    // Create deep dependency string from waypoint coordinates
-    const coords = waypoints.map(w => `${w.lat},${w.lng}`).join('|');
     
     routeDebounced(waypoints);
     
@@ -106,7 +101,7 @@ export default function RouteLayer({
         routeDebounced.cancel();
       }
     };
-  }, [map, waypoints.length, waypoints.map(w => `${w.lat},${w.lng}`).join('|'), routeDebounced]);
+  }, [map, coords, routeDebounced]);
 
   // cleanup on unmount
   useEffect(() => {

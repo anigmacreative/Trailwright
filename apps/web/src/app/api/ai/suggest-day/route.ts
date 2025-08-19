@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,8 +31,8 @@ export async function POST(request: NextRequest) {
         interests: ['sightseeing', 'food', 'culture'], // Default interests
         hours: 8,
         travel_mode: 'DRIVING',
-        trip_id: tripId,
-        day_id: `day-${dayIndex}`,
+        trip_id: tripId || randomUUID(),
+        day_id: randomUUID(),
       }),
     });
 

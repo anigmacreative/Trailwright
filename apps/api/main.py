@@ -169,11 +169,23 @@ def two_opt_improve(places: List[Place], tour: List[str]) -> List[str]:
 async def get_ai_response(prompt: str) -> str:
     """Get response from AI provider"""
     ai_provider = os.getenv("AI_PROVIDER", "anthropic").lower()
+    print(f"AI Provider: {ai_provider}")
     
     if ai_provider == "anthropic":
         api_key = os.getenv("ANTHROPIC_API_KEY")
+        print(f"API Key present: {bool(api_key)}")
+        print(f"API Key starts with: {api_key[:20] if api_key else 'None'}...")
         if not api_key:
             raise HTTPException(status_code=500, detail="Anthropic API key not configured")
+        if not api_key.startswith('sk-ant-'):
+            raise HTTPException(status_code=500, detail="Invalid Anthropic API key format")
+        
+        request_data = {
+            "model": "claude-3-sonnet-20240229",
+            "max_tokens": 1000,
+            "messages": [{"role": "user", "content": prompt}]
+        }
+        print(f"Making Anthropic API request with model: {request_data['model']}")
         
         async with httpx.AsyncClient() as client:
             response = await client.post(
@@ -183,17 +195,19 @@ async def get_ai_response(prompt: str) -> str:
                     "content-type": "application/json",
                     "anthropic-version": "2023-06-01"
                 },
-                json={
-                    "model": "claude-3-sonnet-20240229",
-                    "max_tokens": 1000,
-                    "messages": [{"role": "user", "content": prompt}]
-                }
+                json=request_data,
+                timeout=30.0
             )
             
+            print(f"Anthropic API response status: {response.status_code}")
+            
             if response.status_code != 200:
-                raise HTTPException(status_code=500, detail="AI service error")
+                error_text = response.text
+                print(f"Anthropic API error response: {error_text}")
+                raise HTTPException(status_code=500, detail=f"Anthropic API error {response.status_code}: {error_text}")
             
             result = response.json()
+            print(f"Anthropic API response keys: {list(result.keys())}")
             return result["content"][0]["text"]
     
     elif ai_provider == "openai":
@@ -316,23 +330,46 @@ async def generate_day_plan(request: GenerateDayPlanRequest):
         json_str = ai_response[start:end]
         parsed = json.loads(json_str)
         
+        # Skip database storage for now to test OpenAI integration
         # Store suggestion in database
-        suggestion_id = str(uuid.uuid4())
-        supabase.table("ai_suggestions").insert({
-            "id": suggestion_id,
-            "trip_id": request.trip_id,
-            "day_id": request.day_id,
-            "prompt": prompt,
-            "result": parsed,
-            "created_by": "system"  # Would be user_id in real app
-        }).execute()
+        # suggestion_id = str(uuid.uuid4())
+        # system_user_id = str(uuid.uuid4())  # Generate a system user UUID
+        
+        # Ensure trip_id and day_id are valid UUIDs
+        # try:
+        #     uuid.UUID(request.trip_id)
+        #     trip_id = request.trip_id
+        # except (ValueError, TypeError):
+        #     trip_id = str(uuid.uuid4())
+        
+        # try:
+        #     if request.day_id:
+        #         uuid.UUID(request.day_id)
+        #         day_id = request.day_id
+        #     else:
+        #         day_id = str(uuid.uuid4())
+        # except (ValueError, TypeError):
+        #     day_id = str(uuid.uuid4())
+        
+        # supabase.table("ai_suggestions").insert({
+        #     "id": suggestion_id,
+        #     "trip_id": trip_id,
+        #     "day_id": day_id,
+        #     "prompt": prompt,
+        #     "result": parsed,
+        #     "created_by": system_user_id  # Use UUID instead of "system"
+        # }).execute()
         
         return GenerateDayPlanResponse(**parsed)
     
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="Failed to parse AI response")
+    except HTTPException as he:
+        print(f"HTTPException in AI generation: {he.detail}")
+        raise he  # Re-raise the original HTTPException
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+        print(f"AI generation exception: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {type(e).__name__}: {str(e)}")
 
 @app.post("/import/kml", response_model=ImportResponse)
 async def import_kml(request: ImportRequest):
