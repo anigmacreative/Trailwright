@@ -149,10 +149,9 @@ export default function TripPage({ params }: { params: { tripId: string } }) {
     window.open(`/api/export/pdf?state=${data}`, "_blank");
   };
 
-  // AI suggestions placeholder
+  // AI suggestions handler
   const handleAISuggestions = async () => {
     try {
-      // TODO: Call FastAPI endpoint for AI suggestions
       const response = await fetch('/api/ai/suggest-day', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -165,13 +164,16 @@ export default function TripPage({ params }: { params: { tripId: string } }) {
 
       if (response.ok) {
         const suggestions = await response.json();
-        // TODO: Process AI suggestions and update itinerary
         console.log('AI suggestions:', suggestions);
-        alert('AI suggestions feature coming soon!');
+        alert(`AI suggestions received! Found ${suggestions.suggestions?.length || 0} recommendations. Check console for details.`);
+      } else {
+        const errorData = await response.json();
+        console.error('AI suggestions failed:', errorData);
+        alert(`AI suggestions failed: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('AI suggestions failed:', error);
-      alert('AI suggestions feature coming soon!');
+      alert(`AI suggestions failed: ${error.message}`);
     }
   };
 

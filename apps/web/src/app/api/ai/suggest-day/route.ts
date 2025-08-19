@@ -8,6 +8,13 @@ export async function POST(request: NextRequest) {
     // Get the FastAPI backend URL
     const backendUrl = process.env.TRAILWRIGHT_API_URL || 'https://trailwright-api.fly.dev';
     
+    // Extract city from current stops or default
+    let city = 'New York';
+    if (currentStops && currentStops.length > 0) {
+      // Could use reverse geocoding here, for now use a default
+      city = 'Current Location';
+    }
+
     // Forward the request to the FastAPI backend
     const response = await fetch(`${backendUrl}/ai/generate-day-plan`, {
       method: 'POST',
@@ -15,8 +22,8 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        city: 'New York', // TODO: Extract from trip data or current stops
-        interests: ['sightseeing', 'food'], // TODO: Extract from user preferences
+        city,
+        interests: ['sightseeing', 'food', 'culture'], // Default interests
         hours: 8,
         travel_mode: 'DRIVING',
         trip_id: tripId,
@@ -25,6 +32,8 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`FastAPI returned ${response.status}: ${errorText}`);
       throw new Error(`FastAPI returned ${response.status}`);
     }
 
@@ -34,7 +43,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('AI suggestions failed:', error);
     return NextResponse.json(
-      { error: 'AI suggestions temporarily unavailable' },
+      { error: 'AI suggestions temporarily unavailable', details: error.message },
       { status: 500 }
     );
   }
