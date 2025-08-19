@@ -52,7 +52,20 @@ export default function RouteLayer({
   const routeDebounced = useMemo(
     () =>
       debounce((wps: LatLng[]) => {
-        if (!serviceRef.current || !rendererRef.current || wps.length < 2) return;
+        if (!serviceRef.current || !rendererRef.current) return;
+
+        // Clear route if fewer than 2 waypoints
+        if (wps.length < 2) {
+          rendererRef.current.setDirections(null);
+          rendererRef.current.setMap(null);
+          return;
+        }
+
+        // Ensure renderer is attached to map
+        if (!rendererRef.current.getMap()) {
+          rendererRef.current.setMap(map!);
+        }
+
         const origin = wps[0];
         const destination = wps[wps.length - 1];
         const rest = wps.slice(1, -1).map((p) => ({ location: p, stopover: true }));
@@ -75,13 +88,25 @@ export default function RouteLayer({
           }
         );
       }, 500),
-    [travelMode]
+    [travelMode, map]
   );
 
+  // Use deep dependency to trigger on coordinate changes
   useEffect(() => {
     if (!map) return;
+    
+    // Create deep dependency string from waypoint coordinates
+    const coords = waypoints.map(w => `${w.lat},${w.lng}`).join('|');
+    
     routeDebounced(waypoints);
-  }, [map, waypoints, routeDebounced]);
+    
+    // Cleanup function to cancel pending debounced calls
+    return () => {
+      if (routeDebounced.cancel) {
+        routeDebounced.cancel();
+      }
+    };
+  }, [map, waypoints.length, waypoints.map(w => `${w.lat},${w.lng}`).join('|'), routeDebounced]);
 
   // cleanup on unmount
   useEffect(() => {
