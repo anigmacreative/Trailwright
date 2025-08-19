@@ -79,6 +79,11 @@ export default function DevMapPage() {
     });
   }, [addStopToActiveDay, activeDay.stops.length]);
 
+  // Handle clear waypoints
+  const handleClearWaypoints = useCallback(() => {
+    activeDay.stops.slice().forEach(stop => removeStop(stop.id));
+  }, [activeDay.stops, removeStop]);
+
   // Handle note/cost edits coming from panel row
   const panel = useMemo(() => (
     <ItineraryPanel
@@ -155,6 +160,7 @@ export default function DevMapPage() {
               zoom={12}
               onMapReady={handleMapClick}
               onAddWaypoint={handleAddWaypoint}
+              onClearWaypoints={handleClearWaypoints}
             >
               <MarkersLayer 
                 waypoints={waypoints}

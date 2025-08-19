@@ -130,6 +130,11 @@ export default function TripPage({ params }: { params: { tripId: string } }) {
     });
   }, [addStopToActiveDay, activeDay.stops.length]);
 
+  // Handle clear waypoints
+  const handleClearWaypoints = useCallback(() => {
+    activeDay.stops.slice().forEach(stop => removeStop(stop.id));
+  }, [activeDay.stops, removeStop]);
+
   // Share link: encode state in URL
   const share = () => {
     const data = encodeURIComponent(JSON.stringify(trip));
@@ -248,6 +253,7 @@ export default function TripPage({ params }: { params: { tripId: string } }) {
               zoom={12}
               onMapReady={handleMapClick}
               onAddWaypoint={handleAddWaypoint}
+              onClearWaypoints={handleClearWaypoints}
             >
               <MarkersLayer 
                 waypoints={waypoints}

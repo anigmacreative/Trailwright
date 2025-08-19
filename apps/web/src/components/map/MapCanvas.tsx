@@ -13,6 +13,7 @@ interface MapCanvasProps {
   children?: React.ReactNode; // MarkersLayer / RouteLayer mount inside
   onMapReady?: (map: google.maps.Map) => void;
   onAddWaypoint?: (pos: LatLng, title?: string) => void; // For search results
+  onClearWaypoints?: () => void;
 }
 
 export default function MapCanvas({
@@ -22,6 +23,7 @@ export default function MapCanvas({
   children,
   onMapReady,
   onAddWaypoint,
+  onClearWaypoints,
 }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -103,8 +105,7 @@ export default function MapCanvas({
   };
 
   const clearWaypoints = () => {
-    // This would need to be handled by parent component
-    console.log("Clear waypoints requested - implement in parent");
+    onClearWaypoints?.();
   };
 
   useEffect(() => {
