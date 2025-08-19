@@ -54,9 +54,15 @@ export default function MarkersLayer({ map, waypoints, onMove, onDelete }: Marke
             (m as any).content = drag.element;
 
             // Delete via right-click or "Alt/Option" click
-            m.addListener?.("gmp-rightclick", () => onDelete?.(i));
+            m.addListener?.("gmp-rightclick", () => {
+              (m as any).map = null;  // remove the advanced marker immediately
+              onDelete?.(i);          // notify the parent
+            });
             m.addListener?.("gmp-click", (ev: any) => {
-              if (ev.domEvent?.altKey || ev.domEvent?.metaKey) onDelete?.(i);
+              if (ev.domEvent?.altKey || ev.domEvent?.metaKey) {
+                (m as any).map = null;  // remove the advanced marker immediately
+                onDelete?.(i);          // notify the parent
+              }
             });
 
             markersRef.current.push(m);
@@ -87,7 +93,10 @@ export default function MarkersLayer({ map, waypoints, onMove, onDelete }: Marke
         });
 
         // Delete via right-click
-        m.addListener("rightclick", () => onDelete?.(i));
+        m.addListener("rightclick", () => {
+          m.setMap(null);  // remove the classic marker immediately
+          onDelete?.(i);   // notify the parent
+        });
 
         markersRef.current.push(m);
       }

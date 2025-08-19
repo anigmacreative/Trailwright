@@ -2,9 +2,24 @@ FROM python:3.11-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    wkhtmltopdf \
+    wget \
     xvfb \
+    fontconfig \
+    libfontconfig1 \
+    libfreetype6 \
+    libjpeg62-turbo \
+    libpng16-16 \
+    libx11-6 \
+    libxcb1 \
+    libxext6 \
+    libxrender1 \
     && rm -rf /var/lib/apt/lists/*
+
+# Install wkhtmltopdf from GitHub releases
+RUN wget -q https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_amd64.deb \
+    && dpkg -i wkhtmltox_0.12.6.1-3.bookworm_amd64.deb || true \
+    && apt-get install -f -y \
+    && rm wkhtmltox_0.12.6.1-3.bookworm_amd64.deb
 
 # Set working directory
 WORKDIR /app
