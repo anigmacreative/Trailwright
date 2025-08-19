@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import * as fs from "fs";
 import * as path from "path";
 import { config } from "dotenv";
+import { randomUUID } from "crypto";
 
 // Load environment variables
 config({ path: path.join(__dirname, "../apps/web/.env.local") });
@@ -45,37 +46,59 @@ async function seedDatabase() {
       },
     });
 
-    if (authError && !authError.message.includes("already exists")) {
+    let userId: string;
+    
+    if (authError && (authError.message.includes("email_exists") || authError.code === "email_exists")) {
+      // User already exists, get their ID
+      const { data: users } = await supabase.auth.admin.listUsers();
+      const existingUser = users?.users.find(u => u.email === demoUser.email);
+      userId = existingUser?.id || "demo-user-fallback";
+      console.log(`✅ Demo user already exists: ${userId}`);
+    } else if (authError) {
       console.error("Error creating demo user:", authError);
       return;
+    } else {
+      userId = authData?.user?.id || "demo-user-fallback";
+      console.log(`✅ Demo user created: ${userId}`);
     }
-
-    const userId = authData?.user?.id || "demo-user-id";
-    console.log(`✅ Demo user ready: ${userId}`);
-
-    // Clear existing demo data
+    // Clear existing demo data for this user
     console.log("🧹 Cleaning existing demo data...");
-    await supabase.from("day_places").delete().in("day_id", 
-      (await supabase.from("days").select("id").in("trip_id", seedData.trips.map(t => t.id))).data?.map(d => d.id) || []
-    );
-    await supabase.from("days").delete().in("trip_id", seedData.trips.map(t => t.id));
-    await supabase.from("trips").delete().in("id", seedData.trips.map(t => t.id));
+    const { data: existingTrips } = await supabase
+      .from("trips")
+      .select("id")
+      .eq("owner_id", userId);
+    
+    if (existingTrips && existingTrips.length > 0) {
+      const tripIds = existingTrips.map(t => t.id);
+      const { data: existingDays } = await supabase
+        .from("days")
+        .select("id")
+        .in("trip_id", tripIds);
+      
+      if (existingDays && existingDays.length > 0) {
+        const dayIds = existingDays.map(d => d.id);
+        await supabase.from("day_places").delete().in("day_id", dayIds);
+      }
+      
+      await supabase.from("days").delete().in("trip_id", tripIds);
+      await supabase.from("trips").delete().in("id", tripIds);
+    }
 
     // Seed each trip
     for (const tripData of seedData.trips) {
       console.log(`🗺️  Seeding trip: ${tripData.title}`);
 
-      // Create trip
+      // Create trip with explicit share_id to avoid encoding issue
       const { data: trip, error: tripError } = await supabase
         .from("trips")
         .insert({
-          id: tripData.id,
           owner_id: userId,
           title: tripData.title,
           start_date: tripData.start_date,
           end_date: tripData.end_date,
           is_public: tripData.is_public,
           currency: tripData.currency,
+          share_id: `demo-${Date.now()}-${Math.random().toString(36).substring(2)}`,
         })
         .select()
         .single();

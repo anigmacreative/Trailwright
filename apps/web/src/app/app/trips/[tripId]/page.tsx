@@ -1,118 +1,180 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/ui";
 import { Plus, Settings, Share, Calendar, Zap, Download } from "lucide-react";
-// Removed old map components - using only MapCanvas for baseline
 import DayStrip from "@/components/trip/day-strip";
-import ItineraryList from "@/components/trip/itinerary-list";
-import { addPlaceToDay, listDayPlaces, movePlace, reorderDayPlaces, type DayPlace } from "@/lib/itinerary";
+import ItineraryPanel from "@/components/itinerary/ItineraryPanel";
+import { useItineraryState } from "@/state/itineraryStore";
+import { createClient } from "@supabase/supabase-js";
 
-// Dynamic import for MapCanvas to avoid SSR issues
+// Dynamic imports for map components
 const MapCanvas = dynamic(() => import("@/components/map/MapCanvas"), { ssr: false });
-
-interface Trip {
-  id: string;
-  title: string;
-  startDate: string;
-  endDate: string;
-  days: Array<{
-    id: string;
-    index: number;
-    date: string;
-  }>;
-}
-
-// Mock trip data - in real app this would come from Supabase
-const mockTrip: Trip = {
-  id: "demo-trip-1",
-  title: "Iceland Volcano Trekking",
-  startDate: "2024-06-15",
-  endDate: "2024-06-22",
-  days: [
-    { id: "day-1", index: 0, date: "2024-06-15" },
-    { id: "day-2", index: 1, date: "2024-06-16" },
-    { id: "day-3", index: 2, date: "2024-06-17" },
-  ],
-};
+const MarkersLayer = dynamic(() => import("@/components/map/MarkersLayer"), { ssr: false });
+const RouteLayer = dynamic(() => import("@/components/map/RouteLayer"), { ssr: false });
 
 export default function TripPage({ params }: { params: { tripId: string } }) {
-  const [trip] = useState<Trip>(mockTrip);
-  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
-  const [dayItems, setDayItems] = useState<DayPlace[]>([]);
-  // Simplified state for baseline MapCanvas
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    trip, activeDay, setActiveDayIndex, addDay, removeDay,
+    addStopToActiveDay, removeStop, reorderStops, setStopMeta,
+    setRouteStats, replaceTrip, totalCost, activeDayCost,
+  } = useItineraryState();
 
-  const selectedDay = trip.days[selectedDayIndex];
   const hasApiKey = !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-  // Load day items when day changes
-  useEffect(() => {
-    if (!selectedDay) return;
+  // Convert stops to waypoints for the map components
+  const waypoints: google.maps.LatLngLiteral[] = useMemo(() => {
+    return activeDay.stops.map(stop => ({ lat: stop.lat, lng: stop.lng }));
+  }, [activeDay.stops]);
 
-    const loadDayItems = async () => {
-      setIsLoading(true);
-      setError(null);
+  // Initialize Supabase client
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  // Load trip data from Supabase on mount
+  useEffect(() => {
+    const loadTripData = async () => {
       try {
-        const items = await listDayPlaces({ dayId: selectedDay.id });
-        setDayItems(items);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load day items");
-        setDayItems([]);
-      } finally {
-        setIsLoading(false);
+        // Fetch trip with its days and places
+        const { data: tripData, error: tripError } = await supabase
+          .from('trips')
+          .select(`
+            *,
+            days (
+              *,
+              day_places (
+                *,
+                places (*)
+              )
+            )
+          `)
+          .eq('id', params.tripId)
+          .single();
+
+        if (tripError) throw tripError;
+
+        if (tripData) {
+          // Transform Supabase data to store format
+          const transformedTrip = {
+            id: tripData.id,
+            title: tripData.title,
+            activeDayIndex: 0,
+            days: tripData.days
+              .sort((a: any, b: any) => a.index - b.index)
+              .map((day: any) => ({
+                id: day.id,
+                title: `Day ${day.index + 1}`,
+                stops: day.day_places
+                  .sort((a: any, b: any) => a.sort_order - b.sort_order)
+                  .map((dp: any) => ({
+                    id: dp.id,
+                    title: dp.places.name,
+                    lat: dp.places.lat,
+                    lng: dp.places.lng,
+                    note: dp.notes || '',
+                    cost: dp.cost_cents ? dp.cost_cents / 100 : 0,
+                  }))
+              }))
+          };
+
+          replaceTrip(transformedTrip);
+        }
+      } catch (error) {
+        console.error('Failed to load trip:', error);
       }
     };
 
-    loadDayItems();
-  }, [selectedDay]);
+    if (params.tripId) {
+      loadTripData();
+    }
+  }, [params.tripId, supabase, replaceTrip]);
 
-  const handleMapLoad = useCallback((mapInstance: google.maps.Map) => {
-    setMap(mapInstance);
-  }, []);
+  // Handle marker move (drag)
+  const handleMarkerMove = useCallback((index: number, pos: google.maps.LatLngLiteral) => {
+    const stopId = activeDay.stops[index]?.id;
+    if (stopId) {
+      setStopMeta(stopId, { lat: pos.lat, lng: pos.lng });
+    }
+  }, [activeDay.stops, setStopMeta]);
 
-  // Removed place selection handlers - MapCanvas handles its own interactions
+  // Handle marker delete (right-click)
+  const handleMarkerDelete = useCallback((index: number) => {
+    const stopId = activeDay.stops[index]?.id;
+    if (stopId) {
+      removeStop(stopId);
+    }
+  }, [activeDay.stops, removeStop]);
 
-  // Removed marker interaction handlers - MapCanvas is self-contained
+  // Handle map click to add waypoint
+  const handleMapClick = useCallback((map: google.maps.Map) => {
+    map.addListener('click', (e: google.maps.MapMouseEvent) => {
+      if (e.latLng) {
+        addStopToActiveDay({
+          title: `Stop ${activeDay.stops.length + 1}`,
+          lat: e.latLng.lat(),
+          lng: e.latLng.lng(),
+        });
+      }
+    });
+  }, [addStopToActiveDay, activeDay.stops.length]);
 
-  const handleOptimizeDay = async () => {
-    if (dayItems.length < 2) return;
+  // Handle search result selection
+  const handleAddWaypoint = useCallback((pos: google.maps.LatLngLiteral, title?: string) => {
+    addStopToActiveDay({
+      title: title || `Stop ${activeDay.stops.length + 1}`,
+      lat: pos.lat,
+      lng: pos.lng,
+    });
+  }, [addStopToActiveDay, activeDay.stops.length]);
 
-    setIsLoading(true);
+  // Share link: encode state in URL
+  const share = () => {
+    const data = encodeURIComponent(JSON.stringify(trip));
+    const url = `${location.origin}/app/trips/${params.tripId}?state=${data}`;
+    navigator.clipboard?.writeText(url);
+    alert("Share link copied to clipboard.");
+  };
+
+  // Export trip to PDF
+  const exportTrip = () => {
+    const data = encodeURIComponent(JSON.stringify(trip));
+    window.open(`/api/export/pdf?state=${data}`, "_blank");
+  };
+
+  // AI suggestions placeholder
+  const handleAISuggestions = async () => {
     try {
-      // TODO: Call FastAPI optimization endpoint
-      const response = await fetch('/api/optimize-day', {
+      // TODO: Call FastAPI endpoint for AI suggestions
+      const response = await fetch('/api/ai/suggest-day', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          dayId: selectedDay.id,
-          points: dayItems.map(item => ({ id: item.id, lat: item.lat, lng: item.lng })),
+          tripId: params.tripId,
+          dayIndex: trip.activeDayIndex,
+          currentStops: activeDay.stops,
         }),
       });
 
       if (response.ok) {
-        const { optimizedOrder } = await response.json();
-        const success = await reorderDayPlaces(selectedDay.id, optimizedOrder);
-        
-        if (success) {
-          // Reload day items to get updated order
-          const items = await listDayPlaces({ dayId: selectedDay.id });
-          setDayItems(items);
-        }
-      } else {
-        throw new Error('Optimization failed');
+        const suggestions = await response.json();
+        // TODO: Process AI suggestions and update itinerary
+        console.log('AI suggestions:', suggestions);
+        alert('AI suggestions feature coming soon!');
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Optimization failed");
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      console.error('AI suggestions failed:', error);
+      alert('AI suggestions feature coming soon!');
     }
   };
 
-  // Removed route handlers - MapCanvas handles its own routing
+  // Optimize day route (placeholder)
+  const handleOptimizeDay = () => {
+    // TODO: Implement TSP optimization
+    alert('Route optimization coming soon!');
+  };
 
   if (!hasApiKey) {
     return (
@@ -131,161 +193,72 @@ export default function TripPage({ params }: { params: { tripId: string } }) {
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Header */}
-      <div className="border-b border-clay/20 bg-bone p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="font-serif text-2xl font-bold">{trip.title}</h1>
-            <p className="text-sm text-olive">
-              {new Date(trip.startDate).toLocaleDateString()} - {new Date(trip.endDate).toLocaleDateString()}
-            </p>
-          </div>
+    <div className="min-h-screen bg-[#FAF6EF] text-[#2F2B25]">
+      <main className="mx-auto max-w-[1200px] px-4 py-4">
+        <div className="flex h-[calc(100vh-2rem)] rounded-2xl overflow-hidden border border-[#E5DFD0] shadow-lg">
+          <ItineraryPanel
+            day={activeDay}
+            dayIndex={trip.activeDayIndex}
+            onRemoveStop={(id) => removeStop(id)}
+            onReorderStops={(from, to) => {
+              if (from < 0 || to < 0) return;
+              reorderStops(from, to);
+            }}
+            onOptimize={handleOptimizeDay}
+            onEditNote={(id, note) => setStopMeta(id, { note })}
+            onEditCost={(id, cost) => setStopMeta(id, { cost })}
+            activeDayCost={activeDayCost}
+            distanceText={activeDay.distanceText}
+            durationText={activeDay.durationText}
+          />
           
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Export
-            </Button>
-            <Button variant="outline" size="sm">
-              <Share className="mr-2 h-4 w-4" />
-              Share
-            </Button>
-            <Button variant="outline" size="sm">
-              <Calendar className="mr-2 h-4 w-4" />
-              Calendar
-            </Button>
-            <Button variant="outline" size="sm">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Day Strip */}
-      <DayStrip
-        days={trip.days.map(day => ({ index: day.index, date: day.date }))}
-        selectedDayIndex={selectedDayIndex}
-        onDaySelect={setSelectedDayIndex}
-      />
-
-      {/* Error Banner */}
-      {error && (
-        <div className="bg-red-50 border-b border-red-200 p-3">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-red-700">{error}</p>
-            <button 
-              onClick={() => setError(null)}
-              className="text-red-400 hover:text-red-600"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Map Panel */}
-        <div className="flex flex-1 flex-col">
-          <div className="flex-1 relative">
-            <MapCanvas
-              center={{ lat: 64.1466, lng: -21.9426 }} // Default to Reykjavik
-              zoom={10}
-            />
-          </div>
-        </div>
-
-        {/* Itinerary Panel */}
-        <div className="w-96 border-l border-clay/20 bg-bone flex flex-col">
-          <div className="border-b border-clay/20 p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-serif text-lg font-semibold">
-                Day {selectedDayIndex + 1}
-              </h2>
-              <div className="flex gap-1">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleOptimizeDay}
-                  disabled={dayItems.length < 2 || isLoading}
-                  title="Optimize Day"
-                >
-                  <Zap className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  disabled={isLoading}
-                  title="Generate AI Plan"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
+          <div className="flex-1 flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-[#E5DFD0] bg-white">
+              {/* Day Tabs */}
+              <div className="flex items-center gap-2">
+                {trip.days.map((d, i) => (
+                  <button
+                    key={d.id}
+                    onClick={() => setActiveDayIndex(i)}
+                    className={`rounded-xl border px-3 py-1 text-sm ${
+                      i === trip.activeDayIndex ? "border-[#C85C5C] bg-[#C85C5C] text-white" : "border-[#E5DFD0] text-[#6B5F53] hover:bg-[#F5F1E8]"
+                    }`}
+                  >
+                    {d.title}
+                  </button>
+                ))}
+                <button onClick={addDay} className="rounded-xl border border-[#E5DFD0] px-3 py-1 text-sm text-[#2F2B25] hover:bg-[#F5F1E8]">+ Day</button>
+                {trip.days.length > 1 && (
+                  <button onClick={() => removeDay(trip.days[trip.activeDayIndex].id)} className="rounded-xl border border-[#E5DFD0] px-3 py-1 text-sm text-[#2F2B25] hover:bg-[#F5F1E8]">− Day</button>
+                )}
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 text-sm">
+                <div className="text-[#6B5F53]">Trip total:&nbsp;<span className="text-[#2F2B25]">${totalCost.toFixed(0)}</span></div>
+                <button onClick={share} className="rounded-lg border border-[#E5DFD0] px-3 py-1 hover:bg-[#F5F1E8] text-[#2F2B25]">Share</button>
+                <button onClick={exportTrip} className="rounded-lg border border-[#E5DFD0] px-3 py-1 hover:bg-[#F5F1E8] text-[#2F2B25]">Export</button>
+                <button onClick={handleAISuggestions} className="rounded-lg border border-[#E5DFD0] px-3 py-1 hover:bg-[#F5F1E8] text-[#2F2B25]" title="AI Suggestions">🤖 AI</button>
+                <button className="rounded-lg border border-[#E5DFD0] px-3 py-1 hover:bg-[#F5F1E8] text-[#2F2B25] opacity-50 cursor-not-allowed" title="Calendar view coming soon">📅</button>
               </div>
             </div>
-            <p className="text-sm text-olive">
-              {selectedDay && new Date(selectedDay.date).toLocaleDateString("en-US", { 
-                weekday: "long", 
-                month: "long", 
-                day: "numeric" 
-              })}
-            </p>
-          </div>
-
-          <div className="flex-1 overflow-auto">
-            {isLoading ? (
-              <div className="flex items-center justify-center p-8">
-                <div className="animate-spin h-6 w-6 border-2 border-olive/30 border-t-olive rounded-full" />
-              </div>
-            ) : dayItems.length === 0 ? (
-              <div className="p-8 text-center">
-                <p className="text-olive/60 mb-4">No places added yet</p>
-                <p className="text-sm text-olive/40">
-                  Search for places above or click on the map to add them to your day.
-                </p>
-              </div>
-            ) : (
-              <ItineraryList
-                places={dayItems.map(item => ({
-                  id: item.id,
-                  name: item.name,
-                  lat: item.lat,
-                  lng: item.lng,
-                  address: '',
-                  dayIndex: selectedDayIndex,
-                  sortOrder: item.order,
-                }))}
-                onPlaceClick={(place) => {}}
-                onReorder={(_, fromIndex, toIndex) => {
-                  // Optimistic update
-                  const newItems = [...dayItems];
-                  const [moved] = newItems.splice(fromIndex, 1);
-                  newItems.splice(toIndex, 0, moved);
-                  setDayItems(newItems);
-                  
-                  // Update in database
-                  const orderedIds = newItems.map(item => item.id);
-                  reorderDayPlaces(selectedDay.id, orderedIds).catch(() => {
-                    // Rollback on error
-                    setDayItems(dayItems);
-                    setError("Failed to reorder places");
-                  });
-                }}
-                dayIndex={selectedDayIndex}
+            
+            <MapCanvas 
+              center={{ lat: 40.7128, lng: -74.0060 }}
+              zoom={12}
+              onMapReady={handleMapClick}
+              onAddWaypoint={handleAddWaypoint}
+            >
+              <MarkersLayer 
+                waypoints={waypoints}
+                onMove={handleMarkerMove}
+                onDelete={handleMarkerDelete}
               />
-            )}
-          </div>
-
-          {/* Comments Panel Stub */}
-          <div className="border-t border-clay/20 p-4">
-            <h3 className="text-sm font-medium text-olive/60 mb-2">Comments</h3>
-            <p className="text-xs text-olive/40">Comments feature coming soon...</p>
+              <RouteLayer waypoints={waypoints} />
+            </MapCanvas>
           </div>
         </div>
-      </div>
-
-      {/* Place Drawer removed - MapCanvas is self-contained */}
+      </main>
     </div>
   );
 }
