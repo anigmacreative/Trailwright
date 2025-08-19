@@ -82,7 +82,7 @@ export default function TripPage({ params }: { params: { tripId: string } }) {
 
           replaceTrip(transformedTrip);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Failed to load trip:', error);
       }
     };
@@ -171,9 +171,15 @@ export default function TripPage({ params }: { params: { tripId: string } }) {
         console.error('AI suggestions failed:', errorData);
         alert(`AI suggestions failed: ${errorData.error || 'Unknown error'}`);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('AI suggestions failed:', error);
-      alert(`AI suggestions failed: ${error.message}`);
+      let message = 'Unknown error';
+      if (error instanceof Error) {
+        message = error.message;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        message = (error as any).message;
+      }
+      alert(`AI suggestions failed: ${message}`);
     }
   };
 
