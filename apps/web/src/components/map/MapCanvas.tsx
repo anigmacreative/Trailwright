@@ -1,7 +1,8 @@
 // apps/web/src/components/map/MapCanvas.tsx
 "use client";
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { getLoader, loadMaps, TRAILWRIGHT_PASTEL_STYLE } from "@/lib/google-maps";
+import { getLoader, loadMaps } from "@/lib/google-maps";
+import { EARTH_TONES_MAP_STYLE } from '@/styles/earth-style';
 
 type LatLng = google.maps.LatLngLiteral;
 
@@ -38,7 +39,7 @@ export default function MapCanvas({
     const mapOptions: google.maps.MapOptions = {
       center,
       zoom,
-      styles: TRAILWRIGHT_PASTEL_STYLE,
+      styles: EARTH_TONES_MAP_STYLE,
       gestureHandling: "greedy",
       mapTypeControl: false,
       fullscreenControl: true,
