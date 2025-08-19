@@ -7,6 +7,7 @@ export async function POST(request: NextRequest) {
 
     // Get the FastAPI backend URL
     const backendUrl = process.env.TRAILWRIGHT_API_URL || 'https://trailwright-api.fly.dev';
+    console.log('Backend URL:', backendUrl);
     
     // Extract city from current stops or default
     let city = 'New York';
@@ -16,7 +17,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward the request to the FastAPI backend
-    const response = await fetch(`${backendUrl}/ai/generate-day-plan`, {
+    const fullUrl = `${backendUrl}/ai/generate-day-plan`;
+    console.log('Making request to:', fullUrl);
+    
+    const response = await fetch(fullUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
