@@ -42,8 +42,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(suggestions);
   } catch (error) {
     console.error('AI suggestions failed:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'AI suggestions temporarily unavailable', details: error.message },
+      { error: 'AI suggestions temporarily unavailable', details: message },
       { status: 500 }
     );
   }
