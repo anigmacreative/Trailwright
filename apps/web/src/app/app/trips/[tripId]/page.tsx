@@ -29,6 +29,9 @@ export default function TripPage({ params }: { params: { tripId: string } }) {
     return activeDay.stops.map(stop => ({ lat: stop.lat, lng: stop.lng }));
   }, [activeDay.stops]);
 
+  // Memoize map center to prevent unnecessary re-renders
+  const mapCenter = useMemo(() => ({ lat: 40.7128, lng: -74.0060 }), []);
+
 
   // Load trip data from Supabase on mount
   useEffect(() => {
@@ -282,7 +285,7 @@ export default function TripPage({ params }: { params: { tripId: string } }) {
             </div>
             
             <MapCanvas 
-              center={{ lat: 40.7128, lng: -74.0060 }}
+              center={mapCenter}
               zoom={12}
               onMapReady={handleMapClick}
               onAddWaypoint={handleAddWaypoint}

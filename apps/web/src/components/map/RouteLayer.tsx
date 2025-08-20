@@ -30,6 +30,7 @@ export default function RouteLayer({
 }: RouteLayerProps) {
   const rendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
   const serviceRef = useRef<google.maps.DirectionsService | null>(null);
+  const requestIdRef = useRef<number>(0);
 
   // init once
   useEffect(() => {
@@ -48,7 +49,7 @@ export default function RouteLayer({
     });
   }, [map]);
 
-  // debounced routing
+  // debounced routing with request ID to drop stale responses
   const routeDebounced = useMemo(
     () =>
       debounce((wps: LatLng[]) => {
@@ -60,6 +61,9 @@ export default function RouteLayer({
           return;
         }
 
+        // Increment request ID for this request
+        const currentRequestId = ++requestIdRef.current;
+        
         const origin = wps[0];
         const destination = wps[wps.length - 1];
         const rest = wps.slice(1, -1).map((p) => ({ location: p, stopover: true }));
@@ -74,6 +78,9 @@ export default function RouteLayer({
             // NOTE: for bike/walk, switch travelMode in parent
           },
           (res, status) => {
+            // Drop stale responses
+            if (currentRequestId !== requestIdRef.current) return;
+            
             if (status === google.maps.DirectionsStatus.OK && res) {
               rendererRef.current!.setMap(map!);
               rendererRef.current!.setDirections(res);
@@ -86,8 +93,11 @@ export default function RouteLayer({
     [travelMode, map]
   );
 
-  // Create deep dependency string from waypoint coordinates
-  const coords = waypoints.map(w => `${w.lat},${w.lng}`).join('|');
+  // Create stable dependency string from waypoint coordinates
+  const coordsString = useMemo(() => 
+    JSON.stringify(waypoints.map(w => [w.lat, w.lng])), 
+    [waypoints]
+  );
 
   // Use deep dependency to trigger on coordinate changes
   useEffect(() => {
@@ -101,7 +111,7 @@ export default function RouteLayer({
         routeDebounced.cancel();
       }
     };
-  }, [map, coords, routeDebounced, waypoints]);
+  }, [map, coordsString, routeDebounced]);
 
   // cleanup on unmount
   useEffect(() => {

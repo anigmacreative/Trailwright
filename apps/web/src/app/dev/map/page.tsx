@@ -4,6 +4,7 @@ import { useItineraryState } from "@/state/itineraryStore";
 import ItineraryPanel from "@/components/itinerary/ItineraryPanel";
 import { useEffect, useMemo, useCallback, useState } from "react";
 import { Stop } from "@/types/itinerary";
+import { URL_SYNC_ENABLED } from "@/lib/url-sync";
 
 const MapCanvas = dynamic(() => import("@/components/map/MapCanvas"), { ssr: false });
 const MarkersLayer = dynamic(() => import("@/components/map/MarkersLayer"), { ssr: false });
@@ -21,6 +22,9 @@ export default function DevMapPage() {
     return activeDay.stops.map(stop => ({ lat: stop.lat, lng: stop.lng }));
   }, [activeDay.stops]);
 
+  // Memoize map center to prevent unnecessary re-renders
+  const mapCenter = useMemo(() => ({ lat: 40.7128, lng: -74.0060 }), []);
+
   // Load state from URL on mount if ?state= parameter exists
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -31,9 +35,11 @@ export default function DevMapPage() {
         const sharedTrip = JSON.parse(decodeURIComponent(stateParam));
         replaceTrip(sharedTrip);
         
-        // Clean up URL after loading state (optional)
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, '', newUrl);
+        // Clean up URL after loading state (optional) - guard with URL_SYNC_ENABLED
+        if (URL_SYNC_ENABLED) {
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, '', newUrl);
+        }
       } catch (error: unknown) {
         console.error('Failed to load shared trip state:', error);
         // Continue with default state if parsing fails
@@ -156,7 +162,7 @@ export default function DevMapPage() {
               </div>
             </div>
             <MapCanvas 
-              center={{ lat: 40.7128, lng: -74.0060 }}
+              center={mapCenter}
               zoom={12}
               onMapReady={handleMapClick}
               onAddWaypoint={handleAddWaypoint}

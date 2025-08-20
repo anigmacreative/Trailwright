@@ -28,9 +28,12 @@ export default function MapCanvas({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const lastCenterRef = useRef<LatLng | null>(null);
+  const lastZoomRef = useRef<number | null>(null);
   const [ready, setReady] = useState(false);
   const [suggestions, setSuggestions] = useState<any[]>([]);
 
+  // Initialize map only once
   const init = useCallback(async () => {
     if (!containerRef.current || mapRef.current) return;
 
@@ -54,10 +57,34 @@ export default function MapCanvas({
     }
 
     mapRef.current = new google.maps.Map(containerRef.current, mapOptions);
+    lastCenterRef.current = center;
+    lastZoomRef.current = zoom;
 
     onMapReady?.(mapRef.current);
     setReady(true);
-  }, [center, zoom, onMapReady]);
+  }, [onMapReady]); // Remove center and zoom from dependencies
+
+  // Update map center and zoom without remounting
+  useEffect(() => {
+    if (!mapRef.current) return;
+    
+    // Only update center if it actually changed
+    const centerChanged = !lastCenterRef.current || 
+      lastCenterRef.current.lat !== center.lat || 
+      lastCenterRef.current.lng !== center.lng;
+    
+    const zoomChanged = lastZoomRef.current !== zoom;
+    
+    if (centerChanged) {
+      mapRef.current.setCenter(center);
+      lastCenterRef.current = center;
+    }
+    
+    if (zoomChanged) {
+      mapRef.current.setZoom(zoom);
+      lastZoomRef.current = zoom;
+    }
+  }, [center, zoom]);
 
   // Search functionality using our backend proxy
   const onSearchChange = async () => {
