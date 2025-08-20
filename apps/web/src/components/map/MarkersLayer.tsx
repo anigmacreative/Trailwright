@@ -66,7 +66,7 @@ export default function MarkersLayer({ map, waypoints, onMove, onDelete }: Marke
             });
 
             markersRef.current.push(m);
-          } catch (error) {
+          } catch (error: unknown) {
             console.warn("AdvancedMarkerElement not available, falling back to regular Marker");
             // Fallback to regular marker
             createRegularMarker(pos, i);

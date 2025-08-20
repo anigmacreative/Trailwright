@@ -7,7 +7,7 @@ import { Plus, Settings, Share, Calendar, Zap, Download } from "lucide-react";
 import DayStrip from "@/components/trip/day-strip";
 import ItineraryPanel from "@/components/itinerary/ItineraryPanel";
 import { useItineraryState } from "@/state/itineraryStore";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 
 // Dynamic imports for map components
 const MapCanvas = dynamic(() => import("@/components/map/MapCanvas"), { ssr: false });
@@ -22,22 +22,20 @@ export default function TripPage({ params }: { params: { tripId: string } }) {
   } = useItineraryState();
 
   const hasApiKey = !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const [error, setError] = React.useState<string | null>(null);
 
   // Convert stops to waypoints for the map components
   const waypoints: google.maps.LatLngLiteral[] = useMemo(() => {
     return activeDay.stops.map(stop => ({ lat: stop.lat, lng: stop.lng }));
   }, [activeDay.stops]);
 
-  // Initialize Supabase client
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   // Load trip data from Supabase on mount
   useEffect(() => {
     const loadTripData = async () => {
       try {
+        setError(null);
+        
         // Fetch trip with its days and places
         const { data: tripData, error: tripError } = await supabase
           .from('trips')
@@ -54,7 +52,15 @@ export default function TripPage({ params }: { params: { tripId: string } }) {
           .eq('id', params.tripId)
           .single();
 
-        if (tripError) throw tripError;
+        if (tripError) {
+          console.error('Trip load error:', tripError);
+          if (tripError.code === 'PGRST116') {
+            setError('Trip not found. Please check the URL or select a different trip.');
+          } else {
+            setError('We couldn\'t load this trip. Please refresh or try again later.');
+          }
+          return;
+        }
 
         if (tripData) {
           // Transform Supabase data to store format
@@ -84,13 +90,15 @@ export default function TripPage({ params }: { params: { tripId: string } }) {
         }
       } catch (error: unknown) {
         console.error('Failed to load trip:', error);
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        setError(`We couldn't load this trip: ${message}. Please refresh or pick another trip.`);
       }
     };
 
     if (params.tripId) {
       loadTripData();
     }
-  }, [params.tripId, supabase, replaceTrip]);
+  }, [params.tripId, replaceTrip]);
 
   // Handle marker move (drag)
   const handleMarkerMove = useCallback((index: number, pos: google.maps.LatLngLiteral) => {
@@ -188,6 +196,23 @@ export default function TripPage({ params }: { params: { tripId: string } }) {
     // TODO: Implement TSP optimization
     alert('Route optimization coming soon!');
   };
+
+  if (error) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="max-w-md mx-auto text-center p-6">
+          <h2 className="text-xl font-serif mb-4">Trip Loading Error</h2>
+          <p className="text-[#6B5F53] mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="rounded-lg border border-[#E5DFD0] px-4 py-2 hover:bg-[#F5F1E8] text-[#2F2B25]"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!hasApiKey) {
     return (

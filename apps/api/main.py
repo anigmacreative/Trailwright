@@ -88,6 +88,9 @@ class ImportedPlace(BaseModel):
 class ImportResponse(BaseModel):
     places: List[ImportedPlace]
 
+class PlacesSearchResponse(BaseModel):
+    places: List[Dict[str, Any]]
+
 # Utility functions
 def calculate_distance(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     """Calculate haversine distance between two points in kilometers"""
@@ -239,6 +242,40 @@ async def get_ai_response(prompt: str) -> str:
         raise HTTPException(status_code=500, detail="Unsupported AI provider")
 
 # Routes
+@app.get("/places/search", response_model=PlacesSearchResponse)
+async def places_search(q: str, region: str = "us"):
+    """Search for places using Google Places API"""
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="GOOGLE_MAPS_API_KEY missing")
+    
+    try:
+        url = "https://places.googleapis.com/v1/places:searchText"
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.post(
+                url,
+                headers={
+                    "X-Goog-Api-Key": api_key,
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "textQuery": q,
+                    "regionCode": region,
+                    "maxResultCount": 8
+                }
+            )
+        
+        if response.status_code >= 400:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+        
+        result = response.json()
+        return PlacesSearchResponse(places=result.get("places", []))
+    
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=500, detail=f"Request failed: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Places search failed: {str(e)}")
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "trailwright-api"}

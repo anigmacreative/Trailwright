@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
         "Content-Disposition": "attachment; filename=trip.txt"
       } 
     });
-  } catch (error) {
+  } catch (error: unknown) {
     return new Response("Invalid trip data", { status: 400 });
   }
 }

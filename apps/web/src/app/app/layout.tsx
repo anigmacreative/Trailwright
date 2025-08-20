@@ -25,6 +25,7 @@ export default function AppLayout({
               >
                 Trips
               </Link>
+              {/* TODO: enable when pages exist
               <Link 
                 href="/app/calendar" 
                 className="text-sm font-medium text-olive hover:text-ink transition-colors"
@@ -37,6 +38,7 @@ export default function AppLayout({
               >
                 Shared with Me
               </Link>
+              */}
             </div>
           </div>
 

@@ -34,7 +34,7 @@ export default function DevMapPage() {
         // Clean up URL after loading state (optional)
         const newUrl = window.location.pathname;
         window.history.replaceState({}, '', newUrl);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Failed to load shared trip state:', error);
         // Continue with default state if parsing fails
       }
