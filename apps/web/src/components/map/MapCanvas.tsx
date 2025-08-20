@@ -28,9 +28,8 @@ export default function MapCanvas({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
-  const acServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
   const [ready, setReady] = useState(false);
-  const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
 
   const init = useCallback(async () => {
     if (!containerRef.current || mapRef.current) return;
@@ -56,52 +55,66 @@ export default function MapCanvas({
 
     mapRef.current = new google.maps.Map(containerRef.current, mapOptions);
 
-    // Initialize AutocompleteService for search
-    acServiceRef.current = new google.maps.places.AutocompleteService();
-
     onMapReady?.(mapRef.current);
     setReady(true);
   }, [center, zoom, onMapReady]);
 
-  // Search functionality
+  // Search functionality using our backend proxy
   const onSearchChange = async () => {
-    const svc = acServiceRef.current;
     const input = searchInputRef.current;
-    if (!svc || !input) return;
+    if (!input) return;
     const value = input.value.trim();
     if (!value) {
       setSuggestions([]);
       return;
     }
-    svc.getPlacePredictions({ input: value }, (preds) => {
-      setSuggestions(preds || []);
-    });
+    
+    try {
+      const response = await fetch(`/api/places/search?q=${encodeURIComponent(value)}`);
+      if (response.ok) {
+        const data = await response.json();
+        // Transform backend response to match our UI expectations
+        const transformedSuggestions = (data.places || []).map((place: any) => ({
+          place_id: place.id,
+          description: place.displayName?.text || place.formattedAddress || 'Unknown place',
+          structured_formatting: {
+            main_text: place.displayName?.text || 'Unknown place'
+          },
+          geometry: place.location
+        }));
+        setSuggestions(transformedSuggestions);
+      } else {
+        setSuggestions([]);
+      }
+    } catch (error) {
+      console.error('Search failed:', error);
+      setSuggestions([]);
+    }
   };
 
-  const selectPrediction = async (prediction: google.maps.places.AutocompletePrediction) => {
+  const selectPrediction = async (prediction: any) => {
     if (!mapRef.current) return;
     
-    // Use PlacesService to get details
-    const placesService = new google.maps.places.PlacesService(mapRef.current);
-    placesService.getDetails({ placeId: prediction.place_id }, (result, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK && result?.geometry?.location) {
-        const location = result.geometry.location;
-        const pos = { lat: location.lat(), lng: location.lng() };
-        
-        // Pan to location
-        mapRef.current!.panTo(pos);
-        mapRef.current!.setZoom(15);
-        
-        // Add waypoint if callback provided
-        onAddWaypoint?.(pos, result.name || prediction.structured_formatting.main_text);
-        
-        // Clear search
-        setSuggestions([]);
-        if (searchInputRef.current) {
-          searchInputRef.current.value = "";
-        }
+    // Use the location data from our backend response
+    if (prediction.geometry) {
+      const pos = { 
+        lat: prediction.geometry.latitude, 
+        lng: prediction.geometry.longitude 
+      };
+      
+      // Pan to location
+      mapRef.current.panTo(pos);
+      mapRef.current.setZoom(15);
+      
+      // Add waypoint if callback provided
+      onAddWaypoint?.(pos, prediction.structured_formatting.main_text);
+      
+      // Clear search
+      setSuggestions([]);
+      if (searchInputRef.current) {
+        searchInputRef.current.value = "";
       }
-    });
+    }
   };
 
   const clearWaypoints = () => {

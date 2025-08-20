@@ -101,7 +101,7 @@ export default function RouteLayer({
         routeDebounced.cancel();
       }
     };
-  }, [map, coords, routeDebounced]);
+  }, [map, coords, routeDebounced, waypoints]);
 
   // cleanup on unmount
   useEffect(() => {
