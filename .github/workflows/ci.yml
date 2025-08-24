@@ -2,13 +2,23 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main, develop, feature/* ]
   pull_request:
-    branches: [main]
+    branches: [ main, develop ]
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+  # Test environment variables
+  NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
+  SUPABASE_SERVICE_ROLE_KEY: test-service-key
+  NEXT_PUBLIC_API_URL: http://localhost:8000
+  NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: test-google-key
+  NEXT_PUBLIC_APP_URL: http://localhost:3000
+  NEXT_PUBLIC_DEMO_MODE: true
+  NEXT_PUBLIC_USE_SHARE_ID: true
+  NEXT_PUBLIC_ENABLE_OPTIMIZE: true
 
 jobs:
   lint:
@@ -62,6 +72,32 @@ jobs:
 
       - name: Type check
         run: pnpm typecheck
+
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.12.3
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests
+        run: pnpm test:unit
 
   test-backend:
     name: Test Backend

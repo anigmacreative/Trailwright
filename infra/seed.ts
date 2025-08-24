@@ -88,7 +88,7 @@ async function seedDatabase() {
     for (const tripData of seedData.trips) {
       console.log(`🗺️  Seeding trip: ${tripData.title}`);
 
-      // Create trip with explicit share_id to avoid encoding issue
+      // Create trip with predictable share_id for demo routing
       const { data: trip, error: tripError } = await supabase
         .from("trips")
         .insert({
@@ -98,7 +98,7 @@ async function seedDatabase() {
           end_date: tripData.end_date,
           is_public: tripData.is_public,
           currency: tripData.currency,
-          share_id: `demo-${Date.now()}-${Math.random().toString(36).substring(2)}`,
+          share_id: tripData.id, // Use the seed data ID as share_id for predictable routing
         })
         .select()
         .single();

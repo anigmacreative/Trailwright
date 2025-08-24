@@ -5,11 +5,15 @@ import { Loader } from '@googlemaps/js-api-loader';
  * You must set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in your environment.
  */
 let loader: Loader | null = null;
-export function getLoader(): Loader {
-  if (!loader) {
+let apiKeyMissing = false;
+
+export function getLoader(): Loader | null {
+  if (!loader && !apiKeyMissing) {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
-      throw new Error('Missing NEXT_PUBLIC_GOOGLE_MAPS_API_KEY environment variable');
+      apiKeyMissing = true;
+      console.warn('🗺️ Google Maps API key missing. Set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to enable maps.');
+      return null;
     }
     loader = new Loader({
       apiKey,
@@ -23,12 +27,22 @@ export function getLoader(): Loader {
 /**
  * Loads the Maps API libraries you need (places and marker).  Calling this
  * function multiple times will reuse the cached loader.
+ * Returns false if API key is missing, true if successful.
  */
-export async function loadMaps(): Promise<void> {
+export async function loadMaps(): Promise<boolean> {
   const ldr = getLoader();
-  await ldr.load();
-  await ldr.importLibrary('places');
-  await ldr.importLibrary('marker');
+  if (!ldr) {
+    return false; // API key missing
+  }
+  try {
+    await ldr.load();
+    await ldr.importLibrary('places');
+    await ldr.importLibrary('marker');
+    return true;
+  } catch (error: unknown) {
+    console.error('🗺️ Failed to load Google Maps:', error);
+    return false;
+  }
 }
 
 /**

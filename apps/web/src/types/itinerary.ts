@@ -8,6 +8,9 @@ export type Stop = {
   note?: string;
   cost?: number; // USD for MVP
   markerId?: string; // internal link to map marker
+  // Database IDs for persistence
+  dayPlaceId?: string; // day_places.id
+  placeId?: string; // places.id
 };
 
 export type DayPlan = {

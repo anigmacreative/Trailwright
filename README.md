@@ -73,10 +73,17 @@ pnpm install
 1. Create a Google Cloud project
 2. Enable these APIs:
    - Maps JavaScript API
-   - Places API
+   - Places API (New) 
    - Directions API
    - Distance Matrix API
 3. Create an API key and restrict it to your domain
+4. Add the key to your environment:
+
+```bash
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_api_key_here
+```
+
+**⚠️ Maps Fallback**: If no API key is provided, the app will show a friendly "Maps Unavailable" message instead of crashing. This allows the rest of the application to function normally.
 
 ### 4. Environment Setup
 
@@ -170,24 +177,81 @@ pnpm test:e2e
 
 ## 🚢 Deployment
 
+### Environment Variables Matrix
+
+Configure these environment variables in each platform:
+
+| Variable | Vercel (Frontend) | Fly.io (Backend) | Supabase | Description |
+|----------|-------------------|------------------|----------|-------------|
+| `NEXT_PUBLIC_APP_URL` | ✅ | ❌ | ❌ | Frontend domain (e.g., https://trailwright.vercel.app) |
+| `NEXT_PUBLIC_API_URL` | ✅ | ❌ | ❌ | Backend API URL (e.g., https://api.fly.dev) |
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | ❌ | ❌ | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | ❌ | ❌ | Supabase anonymous key |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | ✅ | ❌ | ❌ | Google Maps JavaScript API key |
+| `NEXT_PUBLIC_DEMO_MODE` | ✅ | ❌ | ❌ | `true` for demo, `false` for prod |
+| `NEXT_PUBLIC_ENABLE_AI` | ✅ | ❌ | ❌ | Enable/disable AI features |
+| `NEXT_PUBLIC_ENABLE_OPTIMIZE` | ✅ | ❌ | ❌ | Enable/disable route optimization |
+| `SUPABASE_URL` | ❌ | ✅ | ❌ | Same as NEXT_PUBLIC_SUPABASE_URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | ❌ | ✅ | ❌ | Supabase service role key |
+| `AI_PROVIDER` | ❌ | ✅ | ❌ | `openai` or `anthropic` |
+| `OPENAI_API_KEY` | ❌ | ✅ | ❌ | OpenAI API key (if AI_PROVIDER=openai) |
+| `ANTHROPIC_API_KEY` | ❌ | ✅ | ❌ | Anthropic API key (if AI_PROVIDER=anthropic) |
+| `GOOGLE_MAPS_API_KEY` | ❌ | ✅ | ❌ | Google Maps API key for server-side |
+| `PDF_SECRET` | ❌ | ✅ | ❌ | Secret for PDF generation security |
+| `CORS_ORIGINS` | ❌ | ✅ | ❌ | Allowed CORS origins (frontend domain) |
+
 ### Frontend (Vercel)
 
 1. Connect your GitHub repo to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push to main
+2. Set root directory to `apps/web`
+3. Set environment variables from the matrix above (Vercel column)
+4. Deploy automatically on push to main
+
+**Required Environment Variables for Vercel:**
+```bash
+NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
+NEXT_PUBLIC_API_URL=https://your-api.fly.dev
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_maps_key
+NEXT_PUBLIC_DEMO_MODE=false
+NEXT_PUBLIC_ENABLE_AI=true
+NEXT_PUBLIC_ENABLE_OPTIMIZE=true
+```
 
 ### Backend (Fly.io)
+
+1. Install Fly CLI and authenticate
+2. Deploy and configure secrets:
 
 ```bash
 cd apps/api
 fly launch
-fly secrets set SUPABASE_URL=... ANTHROPIC_API_KEY=...
+fly secrets set \
+  SUPABASE_URL="https://your-project.supabase.co" \
+  SUPABASE_SERVICE_ROLE_KEY="your_service_key" \
+  AI_PROVIDER="openai" \
+  OPENAI_API_KEY="your_openai_key" \
+  GOOGLE_MAPS_API_KEY="your_maps_key" \
+  PDF_SECRET="your_random_secret" \
+  CORS_ORIGINS="https://your-app.vercel.app"
 fly deploy
 ```
 
 ### Database (Supabase)
 
-Already hosted! Just run your SQL migrations in the Supabase dashboard.
+Already hosted! Configure these settings:
+
+1. **Row Level Security**: Enable RLS and run policies from `infra/rls_policies.sql`
+2. **Auth Providers**: Enable Google/Apple OAuth in Auth settings
+3. **API Settings**: Configure CORS origins to include your frontend domain
+4. **Database**: Run migrations from `infra/schema.sql`
+
+**Required Supabase Configuration:**
+- Enable Row Level Security (RLS)
+- Set up Google OAuth provider
+- Configure CORS origins in API settings
+- Run database migrations and seed data
 
 ## 📊 7-Day Investor Demo Checklist
 
@@ -250,9 +314,11 @@ OPENAI_API_KEY=...     # if using GPT
 ### Common Issues
 
 **Google Maps not loading**
-- Check API key has correct APIs enabled
-- Verify domain restrictions
-- Check browser console for errors
+- Check API key has correct APIs enabled (Maps JavaScript API, Places API, Directions API, Distance Matrix API)
+- Verify domain restrictions in Google Cloud Console
+- Check browser console for quota/billing errors
+- Try with a fresh API key
+- If key is missing/invalid, app shows "Maps Unavailable" instead of crashing
 
 **Database connection failed**
 - Verify Supabase URL and keys

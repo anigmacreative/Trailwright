@@ -31,14 +31,18 @@ export default function MapCanvas({
   const lastCenterRef = useRef<LatLng | null>(null);
   const lastZoomRef = useRef<number | null>(null);
   const [ready, setReady] = useState(false);
+  const [mapsUnavailable, setMapsUnavailable] = useState(false);
   const [suggestions, setSuggestions] = useState<any[]>([]);
 
   // Initialize map only once
   const init = useCallback(async () => {
     if (!containerRef.current || mapRef.current) return;
 
-    await getLoader().load(); // ensure script tag
-    await loadMaps(); // ensure libs
+    const mapsLoaded = await loadMaps();
+    if (!mapsLoaded) {
+      setMapsUnavailable(true);
+      return;
+    }
 
     const mapOptions: google.maps.MapOptions = {
       center,
@@ -152,6 +156,26 @@ export default function MapCanvas({
     // run once; deps are primitives and onMapReady reference-stable
     void init();
   }, [init]);
+
+  // Early return for missing API key
+  if (mapsUnavailable) {
+    return (
+      <div className={`relative w-full h-full ${className}`}>
+        <div className="absolute inset-0 rounded-xl overflow-hidden bg-[#F5F1E8] flex items-center justify-center">
+          <div className="max-w-md mx-auto text-center p-8">
+            <div className="text-6xl mb-4">🗺️</div>
+            <h3 className="text-xl font-serif mb-2 text-[#2F2B25]">Maps Unavailable</h3>
+            <p className="text-[#6B5F53] mb-4">
+              Google Maps API key is missing or invalid. Add your API key to enable interactive maps.
+            </p>
+            <div className="text-sm text-[#8A7F73] bg-[#FFFDF8] border border-[#E5DFD0] rounded-lg p-3">
+              <code>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_key_here</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`relative w-full h-full ${className}`}>

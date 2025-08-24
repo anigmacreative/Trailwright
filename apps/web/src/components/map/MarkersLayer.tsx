@@ -21,7 +21,10 @@ export default function MarkersLayer({ map, waypoints, onMove, onDelete }: Marke
     if (!map) return;
 
     (async () => {
-      await getLoader().load();
+      const loader = getLoader();
+      if (!loader) return; // API key missing
+      
+      await loader.load();
       
       // Clear existing
       markersRef.current.forEach(m => {
